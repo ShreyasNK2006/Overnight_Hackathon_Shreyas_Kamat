@@ -1,0 +1,23 @@
+# --- The Core Framework ---
+langchain==0.1.0
+langchain-community==0.0.13
+langchain-core==0.1.10
+langchain-text-splitters==0.0.1
+
+# --- The "Vision" Engine (Docling) ---
+docling==2.11.0 
+langchain-docling==0.3.0
+
+# --- The "Brain" (Gemini) ---
+langchain-google-genai==0.0.9
+
+# --- The Embeddings (Local/Free) ---
+# This runs the model on your laptop CPU. No API calls.
+langchain-huggingface==0.0.8
+sentence-transformers==2.5.1
+
+# --- The Database (Supabase) ---
+supabase==2.3.0
+
+# --- Utilities ---
+python-dotenv==1.0.1
