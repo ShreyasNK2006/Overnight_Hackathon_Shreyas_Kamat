@@ -25,3 +25,8 @@ supabase>=2.0.0
 # --- Utilities ---
 python-dotenv
 pydantic-settings>=2.0.0
+
+# --- FastAPI (Web API) ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
