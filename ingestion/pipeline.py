@@ -86,6 +86,9 @@ class IngestionPipeline:
             except Exception as e:
                 logger.error(f"Failed to upload image {image_data['image_path']}: {e}")
         
+        # ===== STEP 2.5: Replace image paths in markdown with Supabase URLs =====
+        markdown_content = self._replace_image_urls(markdown_content, image_url_map)
+        
         # ===== STEP 3: Split Markdown into Parent Nodes =====
         parent_nodes = self.markdown_splitter.split_markdown(
             markdown_content, 
@@ -133,7 +136,10 @@ class IngestionPipeline:
         )
         stats["parent_nodes"] += 1
         
-        # Route based on content type
+        # Create child vectors for all types
+        # Text: recursive split into chunks
+        # Tables: Gemini-generated summary
+        # Images: Gemini-generated caption
         if node_type == "text":
             self._process_text_node(content, metadata, parent_id, stats)
         elif node_type == "table":
@@ -238,6 +244,43 @@ class IngestionPipeline:
             return markdown_image[start:end]
         except:
             return ""
+    
+    def _replace_image_urls(
+        self, 
+        markdown_content: str, 
+        image_url_map: Dict[str, str]
+    ) -> str:
+        """
+        Replace local image paths in markdown with Supabase public URLs
+        
+        Args:
+            markdown_content: Original markdown with local image paths
+            image_url_map: Mapping of {local_path: supabase_url}
+        
+        Returns:
+            Updated markdown with Supabase URLs
+        """
+        import re
+        
+        # Pattern to match markdown images: ![alt text](image_path)
+        pattern = r'!\[(.*?)\]\((.*?)\)'
+        
+        def replace_url(match):
+            alt_text = match.group(1)
+            original_path = match.group(2)
+            
+            # Check if this path is in our uploaded images map
+            for local_path, supabase_url in image_url_map.items():
+                # Match by filename or full path
+                if original_path in local_path or local_path.endswith(original_path):
+                    logger.debug(f"Replacing {original_path} with {supabase_url}")
+                    return f'![{alt_text}]({supabase_url})'
+            
+            # If no match found, return original
+            return match.group(0)
+        
+        updated_markdown = re.sub(pattern, replace_url, markdown_content)
+        return updated_markdown
 
 
 def main():

@@ -36,22 +36,28 @@ class MultimodalHandler:
         Returns:
             Natural language summary for vector search
         """
-        prompt = f"""
-You are summarizing a table from a document for search purposes.
+        prompt = f"""You are an expert at analyzing tables and extracting structured information for semantic search.
 
-Document: {metadata.get('source', 'Unknown')}
-Section: {metadata.get('section_header', 'Unknown')}
+Context:
+- Document: {metadata.get('source', 'Unknown')}
+- Section: {metadata.get('section_header', 'Unknown')}
 
-Table:
+Table Content:
 {table_markdown}
 
-Generate a detailed natural language summary that:
-1. Describes what the table contains
-2. Lists all key information, values, and relationships
-3. Includes specific numbers, names, and details
-4. Is optimized for semantic search
+Your task: Create a comprehensive summary that captures ALL key information from this table.
 
-Summary:"""
+Requirements:
+1. Start with what the table represents (purpose/domain)
+2. Extract ALL column headers and what they measure
+3. List ALL rows with their key data points and values
+4. Identify patterns, ranges, relationships between columns
+5. Include specific numbers, units, categories, and identifiers
+6. Preserve technical terms, acronyms, and domain-specific language
+7. Make it searchable - someone should be able to find this table by querying any value or concept in it
+
+Generate a detailed, information-dense summary (aim for 200-400 words) that preserves all searchable content:
+"""
         
         try:
             response = self.llm.invoke(prompt)
@@ -80,31 +86,51 @@ Summary:"""
         Returns:
             Detailed caption for vector search
         """
-        prompt = f"""
-You are describing an image from a document for search purposes.
+        prompt = f"""You are an expert at analyzing images and creating detailed descriptions for semantic search.
 
-Document: {metadata.get('source', 'Unknown')}
-Section: {metadata.get('section_header', 'Unknown')}
-Page: {metadata.get('page_num', 'Unknown')}
+Context:
+- Document: {metadata.get('source', 'Unknown')}
+- Section: {metadata.get('section_header', 'Unknown')}
+- Page: {metadata.get('page_num', 'Unknown')}
+- Image URL: {image_url}
 
-Describe this image in detail for search purposes. Include:
-1. What objects, text, or diagrams are visible
-2. Colors, shapes, and layout
-3. The purpose or context of the image
-4. Any text visible in the image
-5. Technical details if it's a blueprint, diagram, or chart
+Your task: Analyze this image and create a comprehensive, searchable description.
 
-Be specific and detailed. This description will be used for semantic search.
+Requirements:
+1. Identify the type of image (photo, diagram, chart, blueprint, screenshot, etc.)
+2. Describe ALL visible elements:
+   - Objects, people, structures
+   - Text, labels, annotations
+   - Charts/graphs: axes, data points, trends
+   - Diagrams: components, connections, flow
+3. Extract ALL readable text verbatim
+4. Describe colors, shapes, spatial relationships
+5. Infer purpose and context from the surrounding section
+6. Include technical terminology for infrastructure/engineering content
+7. Make it searchable - preserve key terms, numbers, identifiers
 
-Description:"""
+Generate a detailed, information-dense description (aim for 200-400 words):
+"""
         
         try:
-            # For now, use text-only model
-            # In production, you'd use Gemini Vision API with the actual image
-            response = self.llm.invoke(prompt)
+            # Use Gemini Vision to analyze the actual image
+            # Create a message with the image URL
+            from langchain_core.messages import HumanMessage
+            
+            message = HumanMessage(
+                content=[
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": image_url}
+                    }
+                ]
+            )
+            
+            response = self.llm.invoke([message])
             caption = response.content.strip()
             
-            logger.debug(f"Generated image caption ({len(caption)} chars)")
+            logger.debug(f"Generated image caption from vision API ({len(caption)} chars)")
             return caption
             
         except Exception as e:

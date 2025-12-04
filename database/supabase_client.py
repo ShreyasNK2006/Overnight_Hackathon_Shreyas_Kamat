@@ -55,7 +55,7 @@ class SupabaseClient:
         if source_created_at:
             data["source_created_at"] = source_created_at
         
-        response = self.client.table("parent_docs").insert(data).execute()
+        response = self.client.table("parent_documents").insert(data).execute()
         parent_id = response.data[0]["id"]
         
         logger.info(f"Inserted parent doc: {parent_id}, type: {metadata.get('type')}")
@@ -71,7 +71,7 @@ class SupabaseClient:
         Returns:
             Parent document with content and metadata
         """
-        response = self.client.table("parent_docs")\
+        response = self.client.table("parent_documents")\
             .select("*")\
             .eq("id", parent_id)\
             .execute()
@@ -188,8 +188,9 @@ class SupabaseClient:
         try:
             # Try to create bucket (idempotent - won't fail if exists)
             self.storage.create_bucket(
-                self.bucket_name,
-                {"public": True}  # Make bucket public for image URLs
+                id=self.bucket_name,
+                name=self.bucket_name,
+                options={"public": True}  # Make bucket public for image URLs
             )
             logger.info(f"Storage bucket '{self.bucket_name}' created/verified")
             return True
@@ -208,7 +209,7 @@ class SupabaseClient:
         WARNING: This is destructive!
         """
         self.client.table("child_vectors").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
-        self.client.table("parent_docs").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+        self.client.table("parent_documents").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
         logger.warning("Deleted all data from database")
 
 

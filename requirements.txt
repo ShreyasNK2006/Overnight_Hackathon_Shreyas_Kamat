@@ -24,3 +24,4 @@ supabase>=2.0.0
 
 # --- Utilities ---
 python-dotenv
+pydantic-settings>=2.0.0

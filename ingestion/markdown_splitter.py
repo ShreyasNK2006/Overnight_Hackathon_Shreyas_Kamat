@@ -22,10 +22,13 @@ class MarkdownSplitter:
     def __init__(self):
         """Initialize markdown header splitter"""
         # Split on markdown headers to preserve logical sections
+        # Including H4 and H5 for more granular splitting
         self.headers_to_split_on = [
             ("#", "Header1"),
             ("##", "Header2"),
             ("###", "Header3"),
+            ("####", "Header4"),
+            ("#####", "Header5"),
         ]
         
         self.splitter = MarkdownHeaderTextSplitter(
@@ -102,32 +105,87 @@ class MarkdownSplitter:
         """
         chunks = []
         
-        # Pattern to match markdown tables
-        table_pattern = r'(\|.+\|[\r\n]+\|[\s:-]+\|[\r\n]+(?:\|.+\|[\r\n]*)+)'
+        # Improved pattern to match markdown tables (including header row and separator)
+        # Matches: | col1 | col2 |\n| --- | --- |\n| val1 | val2 |
+        table_pattern = r'(?:^\|.+\|$\n)+(?:^\|[\s:-]+\|$\n)+(?:^\|.+\|$\n?)+'
         
         # Pattern to match markdown images  
-        image_pattern = r'(!\[.*?\]\(.*?\))'
+        image_pattern = r'!\[.*?\]\(.*?\)'
         
-        # Combine patterns
-        combined_pattern = f'({table_pattern}|{image_pattern})'
+        # Split content by lines to better handle tables
+        lines = content.split('\n')
+        current_chunk = []
+        current_type = None
+        in_table = False
         
-        # Split content by tables and images
-        parts = re.split(combined_pattern, content, flags=re.MULTILINE)
-        
-        for part in parts:
-            if not part or not part.strip():
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            
+            # Check if this is an image line
+            if re.match(image_pattern, line.strip()):
+                # Save current chunk if exists
+                if current_chunk:
+                    chunk_text = '\n'.join(current_chunk).strip()
+                    if chunk_text:
+                        chunks.append({"content": chunk_text, "type": current_type or "text"})
+                    current_chunk = []
+                    current_type = None
+                
+                # Add image as separate chunk
+                chunks.append({"content": line.strip(), "type": "image"})
+                i += 1
                 continue
             
-            # Determine what this part is
-            if re.match(table_pattern, part.strip(), re.MULTILINE):
-                chunks.append({"content": part.strip(), "type": "table"})
-            elif re.match(image_pattern, part.strip()):
-                chunks.append({"content": part.strip(), "type": "image"})
+            # Check if this line is part of a table
+            is_table_line = bool(re.match(r'^\s*\|.*\|\s*$', line))
+            
+            if is_table_line:
+                if not in_table:
+                    # Starting a new table - save previous chunk
+                    if current_chunk:
+                        chunk_text = '\n'.join(current_chunk).strip()
+                        if chunk_text:
+                            chunks.append({"content": chunk_text, "type": current_type or "text"})
+                        current_chunk = []
+                    
+                    in_table = True
+                    current_type = "table"
+                
+                current_chunk.append(line)
             else:
-                # It's text - but skip if it's just whitespace or table separators
-                clean_text = part.strip()
-                if clean_text and not re.match(r'^[\s\-|:]+$', clean_text):
-                    chunks.append({"content": clean_text, "type": "text"})
+                # Not a table line
+                if in_table:
+                    # Table ended - save it
+                    if current_chunk:
+                        chunk_text = '\n'.join(current_chunk).strip()
+                        if chunk_text:
+                            chunks.append({"content": chunk_text, "type": "table"})
+                        current_chunk = []
+                    
+                    in_table = False
+                    current_type = "text"
+                
+                # Add to text chunk only if not empty/whitespace
+                if line.strip():
+                    if current_type != "text":
+                        # Save previous chunk if switching types
+                        if current_chunk:
+                            chunk_text = '\n'.join(current_chunk).strip()
+                            if chunk_text:
+                                chunks.append({"content": chunk_text, "type": current_type or "text"})
+                            current_chunk = []
+                    
+                    current_type = "text"
+                    current_chunk.append(line)
+            
+            i += 1
+        
+        # Save any remaining chunk
+        if current_chunk:
+            chunk_text = '\n'.join(current_chunk).strip()
+            if chunk_text:
+                chunks.append({"content": chunk_text, "type": current_type or "text"})
         
         # If no chunks found, treat entire content as text
         if not chunks:
@@ -161,13 +219,13 @@ class MarkdownSplitter:
         Extract section header from metadata
         
         Args:
-            header_metadata: Dict with Header1, Header2, Header3 keys
+            header_metadata: Dict with Header1, Header2, Header3, Header4, Header5 keys
             
         Returns:
             Combined section header string
         """
         headers = []
-        for key in ['Header1', 'Header2', 'Header3']:
+        for key in ['Header1', 'Header2', 'Header3', 'Header4', 'Header5']:
             if key in header_metadata and header_metadata[key]:
                 headers.append(header_metadata[key])
         

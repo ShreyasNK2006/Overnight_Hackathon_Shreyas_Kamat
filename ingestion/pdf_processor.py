@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 from datetime import datetime
 import logging
+from io import BytesIO
 
 from docling.document_converter import DocumentConverter
 
@@ -64,16 +65,56 @@ class DoclingProcessor:
         # Get markdown content
         markdown_content = result.document.export_to_markdown()
         
-        # Extract images
+        # Extract images and create proper markdown references
         extracted_images = []
+        image_placeholders = {}  # Map placeholder index to image path
+        
         for idx, picture in enumerate(result.document.pictures):
-            image_data = {
-                "image_bytes": picture.get_image().tobytes(),
-                "image_path": f"{doc_id}/image_{idx}.png",
-                "page_num": getattr(picture, 'page', idx + 1),  # Get page if available
-                "format": "PNG"
-            }
-            extracted_images.append(image_data)
+            try:
+                # Get PIL image with document reference
+                pil_image = picture.get_image(result.document)
+                
+                # Convert PIL image to bytes
+                img_byte_arr = BytesIO()
+                pil_image.save(img_byte_arr, format='PNG')
+                img_byte_arr = img_byte_arr.getvalue()
+                
+                image_path = f"{doc_id}/image_{idx}.png"
+                image_data = {
+                    "image_bytes": img_byte_arr,
+                    "image_path": image_path,
+                    "page_num": getattr(picture, 'page', idx + 1),
+                    "format": "PNG"
+                }
+                extracted_images.append(image_data)
+                
+                # Store placeholder mapping
+                image_placeholders[idx] = image_path
+                
+            except Exception as e:
+                logger.warning(f"Could not extract image {idx}: {e}")
+                continue
+        
+        # Replace HTML comment placeholders with proper markdown image syntax
+        # Docling outputs: <!-- image -->
+        # We need: ![Image 0](doc_id/image_0.png)
+        import re
+        image_comment_pattern = r'<!-- image -->'
+        
+        def replace_image_comment(match):
+            # Get the index based on how many we've replaced so far
+            if not hasattr(replace_image_comment, 'counter'):
+                replace_image_comment.counter = 0
+            
+            idx = replace_image_comment.counter
+            replace_image_comment.counter += 1
+            
+            if idx in image_placeholders:
+                image_path = image_placeholders[idx]
+                return f"![Image {idx}]({image_path})"
+            return match.group(0)  # Keep original if no mapping
+        
+        markdown_content = re.sub(image_comment_pattern, replace_image_comment, markdown_content)
         
         # Create metadata
         metadata = {
