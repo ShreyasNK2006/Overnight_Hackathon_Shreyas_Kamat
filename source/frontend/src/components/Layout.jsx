@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { MessageSquare, UploadCloud, LogOut, ShieldAlert } from 'lucide-react';
+import { MessageSquare, UploadCloud, LogOut, ShieldAlert, Users, Route, BarChart3 } from 'lucide-react';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -35,11 +35,28 @@ export default function Layout() {
           </Link>
 
           {role === 'admin' && (
-            <Link to="/dashboard/upload" className={`flex items-center gap-3 p-3 rounded-lg transition-all ${isActive('/dashboard/upload')}`}>
-              <UploadCloud size={20} />
-              <span className="font-medium">Ingestion Engine</span>
-            </Link>
+            <>
+              <Link to="/dashboard/upload" className={`flex items-center gap-3 p-3 rounded-lg transition-all ${isActive('/dashboard/upload')}`}>
+                <UploadCloud size={20} />
+                <span className="font-medium">Ingestion Engine</span>
+              </Link>
+
+              <Link to="/dashboard/stakeholders" className={`flex items-center gap-3 p-3 rounded-lg transition-all ${isActive('/dashboard/stakeholders')}`}>
+                <Users size={20} />
+                <span className="font-medium">Stakeholders</span>
+              </Link>
+
+              <Link to="/dashboard/visualization" className={`flex items-center gap-3 p-3 rounded-lg transition-all ${isActive('/dashboard/visualization')}`}>
+                <BarChart3 size={20} />
+                <span className="font-medium">Visualization</span>
+              </Link>
+            </>
           )}
+
+          <Link to="/dashboard/routing" className={`flex items-center gap-3 p-3 rounded-lg transition-all ${isActive('/dashboard/routing')}`}>
+            <Route size={20} />
+            <span className="font-medium">Document Routing</span>
+          </Link>
         </nav>
 
         <div className="p-4 border-t border-slate-700">

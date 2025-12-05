@@ -60,12 +60,18 @@ class IngestionPipeline:
             "child_vectors": 0,
             "images_uploaded": 0,
             "tables_processed": 0,
-            "text_sections": 0
+            "text_sections": 0,
+            "doc_id": None,
+            "total_pages": None
         }
         
         # ===== STEP 1: PDF → Markdown + Images =====
         markdown_content, extracted_images, base_metadata = \
             self.pdf_processor.process_pdf(pdf_path)
+        
+        # Add document ID and page count to stats
+        stats["doc_id"] = base_metadata.get("doc_id")
+        stats["total_pages"] = base_metadata.get("total_pages")
         
         # Add upload timestamp for temporal conflict resolution
         upload_timestamp = datetime.utcnow().isoformat()

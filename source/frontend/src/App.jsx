@@ -3,6 +3,9 @@ import Login from './pages/Login';
 import Layout from './components/Layout';
 import QueryEngine from './pages/QueryEngine';
 import IngestionEngine from './pages/IngestionEngine';
+import StakeholderManagement from './pages/StakeholderManagement';
+import DocumentRouting from './pages/DocumentRouting';
+import AdminVisualization from './pages/AdminVisualization';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -20,6 +23,20 @@ function App() {
               <IngestionEngine />
             </ProtectedRoute>
           } />
+
+          <Route path="stakeholders" element={
+            <ProtectedRoute requiredRole="admin">
+              <StakeholderManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="visualization" element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminVisualization />
+            </ProtectedRoute>
+          } />
+
+          <Route path="routing" element={<DocumentRouting />} />
         </Route>
       </Routes>
     </BrowserRouter>
