@@ -10,7 +10,9 @@ from datetime import datetime
 import logging
 from io import BytesIO
 
-from docling.document_converter import DocumentConverter
+from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.datamodel.base_models import InputFormat
+from docling.datamodel.pipeline_options import PdfPipelineOptions, TableFormerMode
 
 logger = logging.getLogger(__name__)
 
@@ -25,16 +27,28 @@ class DoclingProcessor:
     
     def __init__(self, output_dir: str = "temp_markdown"):
         """
-        Initialize Docling processor
+        Initialize Docling processor with optimized OCR settings
         
         Args:
             output_dir: Directory to temporarily store markdown files
         """
-        self.converter = DocumentConverter()
+        # Configure pipeline with OCR enabled but optimized settings
+        pipeline_options = PdfPipelineOptions()
+        pipeline_options.do_ocr = True
+        pipeline_options.do_table_structure = True
+        pipeline_options.table_structure_options.mode = TableFormerMode.FAST
+        pipeline_options.images_scale = 1.0  # Don't upscale images for OCR
+        pipeline_options.generate_picture_images = True
+        
+        self.converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+            }
+        )
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         
-        logger.info("Docling processor initialized")
+        logger.info("Docling processor initialized with OCR enabled")
     
     def process_pdf(
         self, 

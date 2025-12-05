@@ -52,11 +52,6 @@ export default function Layout() {
               </Link>
             </>
           )}
-
-          <Link to="/dashboard/routing" className={`flex items-center gap-3 p-3 rounded-lg transition-all ${isActive('/dashboard/routing')}`}>
-            <Route size={20} />
-            <span className="font-medium">Document Routing</span>
-          </Link>
         </nav>
 
         <div className="p-4 border-t border-slate-700">
