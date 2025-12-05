@@ -158,6 +158,11 @@ export default function IngestionEngine() {
           <FileText size={16} className="text-slate-400" />
           <span className="text-slate-400">processor_logs.txt</span>
         </div>
+      </div>
+
+      {/* Terminal Output */}
+      <div className="bg-slate-900 rounded-lg p-4 shadow-xl font-mono text-sm h-64 overflow-y-auto border border-slate-700 flex flex-col-reverse">
+        {/* flex-col-reverse keeps the latest log at the bottom automatically */}
         <div className="space-y-1">
           {logs.map((log, i) => (
             <div key={i} className={getLogColor(log.type)}>
