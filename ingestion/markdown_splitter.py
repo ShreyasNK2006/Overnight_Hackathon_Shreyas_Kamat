@@ -78,7 +78,8 @@ class MarkdownSplitter:
                     **base_metadata,
                     "chunk_index": chunk_index,
                     "section_header": section_header,
-                    "type": sub_chunk["type"]
+                    "type": sub_chunk["type"],
+                    "page_num": base_metadata.get("page_num", 1)  # Default to page 1 if not specified
                 }
                 
                 parent_node = {

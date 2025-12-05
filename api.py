@@ -75,11 +75,18 @@ class QueryResponse(BaseModel):
     processing_time_ms: float = Field(..., description="Processing time in milliseconds")
 
 
+class IngestionStats(BaseModel):
+    parent_nodes: int
+    child_vectors: int
+    tables_processed: int
+    text_sections: int
+    images_uploaded: int
+
 class IngestionResponse(BaseModel):
     status: str
     message: str
     document_name: str
-    stats: Dict[str, int]
+    stats: IngestionStats
     processing_time_ms: float
 
 

@@ -21,10 +21,10 @@ export default function Layout() {
       <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-xl">
         <div className="p-6 border-b border-slate-700">
           <h2 className="text-xl font-bold flex items-center gap-2">
-            <ShieldAlert className="text-blue-500" /> InfraMind
+            <ShieldAlert className="text-blue-500" /> Insomnia Coders
           </h2>
           <span className="text-xs text-slate-500 uppercase tracking-widest mt-1 block">
-            {role === 'admin' ? 'System Administrator' : 'Operations Staff'}
+            {role === 'admin' ? 'Admin Panel' : 'Employee Panel'}
           </span>
         </div>
 

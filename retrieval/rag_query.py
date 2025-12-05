@@ -101,7 +101,10 @@ class RAGQuerySystem:
             if metadata.get("source"):
                 source_details.append(f"Document: {metadata['source']}")
             if metadata.get("page_num"):
-                source_details.append(f"Page: {metadata['page_num']}")
+                page_info = f"Page: {metadata['page_num']}"
+                if metadata.get("total_pages"):
+                    page_info += f"/{metadata['total_pages']}"
+                source_details.append(page_info)
             if metadata.get("section_header"):
                 source_details.append(f"Section: {metadata['section_header']}")
             if metadata.get("uploaded_at"):
@@ -148,17 +151,17 @@ CITATION GUIDE:
 USER QUESTION:
 {question}
 
-INSTRUCTIONS:
-1. Answer the question using ONLY the information provided in the context above
-2. You MUST cite sources for every fact, claim, or piece of information you mention
-3. Use inline citations in this format: [Source N] where N is the source number
-4. If information comes from multiple sources, cite all: [Source 1, Source 2]
-5. Include page numbers and sections when relevant: [Source 1, Page 5, Section 3]
-6. If the context doesn't contain enough information to answer, say so clearly
-7. Be specific and detailed, but concise
-8. Preserve technical terminology and exact values from the sources
+CRITICAL INSTRUCTIONS:
+1. Answer using ONLY the information explicitly stated in the context above
+2. DO NOT infer, assume, or add information not present in the sources
+3. DO NOT fabricate specific details, examples, or content
+4. If something is mentioned generally (e.g., "question paper"), describe what you see without inventing specifics
+5. You MUST cite sources for every statement: [Source N]
+6. If citing page/section info: [Source N, Page X, Section Y]
+7. If the context lacks sufficient information, clearly state: "The provided sources do not contain..."
+8. Be factual and conservative - when uncertain, say so
 
-ANSWER (with citations):"""
+ANSWER (factual, cited, no hallucinations):"""
 
         try:
             response = self.llm.invoke(prompt)
@@ -216,10 +219,15 @@ ANSWER (with citations):"""
         for i, result in enumerate(results, 1):
             metadata = result["metadata"]
             
+            # Ensure page_num is converted to string
+            page_num = metadata.get("page_num", "N/A")
+            if isinstance(page_num, int):
+                page_num = str(page_num)
+            
             source = {
                 "source_number": i,
                 "document": metadata.get("source", "Unknown"),
-                "page": metadata.get("page_num", "N/A"),
+                "page": page_num,
                 "section": metadata.get("section_header", "N/A"),
                 "type": metadata.get("type", "unknown"),
                 "timestamp": metadata.get("uploaded_at", "N/A"),

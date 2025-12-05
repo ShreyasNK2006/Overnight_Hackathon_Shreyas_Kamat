@@ -112,7 +112,7 @@ class DoclingProcessor:
             if idx in image_placeholders:
                 image_path = image_placeholders[idx]
                 return f"![Image {idx}]({image_path})"
-            return match.group(0)  # Keep original if no mapping
+            return ""  # Remove comment if no image extracted (return empty string)
         
         markdown_content = re.sub(image_comment_pattern, replace_image_comment, markdown_content)
         

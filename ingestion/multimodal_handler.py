@@ -86,30 +86,28 @@ Generate a detailed, information-dense summary (aim for 200-400 words) that pres
         Returns:
             Detailed caption for vector search
         """
-        prompt = f"""You are an expert at analyzing images and creating detailed descriptions for semantic search.
+        prompt = f"""You are an expert at analyzing images and creating FACTUAL descriptions for semantic search.
 
 Context:
 - Document: {metadata.get('source', 'Unknown')}
 - Section: {metadata.get('section_header', 'Unknown')}
 - Page: {metadata.get('page_num', 'Unknown')}
-- Image URL: {image_url}
 
-Your task: Analyze this image and create a comprehensive, searchable description.
+CRITICAL INSTRUCTIONS:
+1. Describe ONLY what you can actually SEE in the image
+2. DO NOT infer, assume, or fabricate details not visible
+3. DO NOT create example questions, content, or specific text unless it's clearly readable
+4. If text is blurry or unreadable, state "text is present but not clearly readable"
+5. Focus on visual elements: layout, structure, document type, format
 
-Requirements:
-1. Identify the type of image (photo, diagram, chart, blueprint, screenshot, etc.)
-2. Describe ALL visible elements:
-   - Objects, people, structures
-   - Text, labels, annotations
-   - Charts/graphs: axes, data points, trends
-   - Diagrams: components, connections, flow
-3. Extract ALL readable text verbatim
-4. Describe colors, shapes, spatial relationships
-5. Infer purpose and context from the surrounding section
-6. Include technical terminology for infrastructure/engineering content
-7. Make it searchable - preserve key terms, numbers, identifiers
+Describe this image accurately:
+- Type: (e.g., question paper header, diagram, chart, table, photograph, etc.)
+- Layout: Describe the visual structure and organization
+- Readable text: ONLY transcribe text that is clearly visible and readable
+- Visual elements: Colors, shapes, formatting, borders, logos
+- Document characteristics: Paper type, official markings, stamps, etc.
 
-Generate a detailed, information-dense description (aim for 200-400 words):
+Generate a FACTUAL, conservative description (100-200 words). If uncertain, say so:
 """
         
         try:

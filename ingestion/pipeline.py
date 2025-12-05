@@ -214,11 +214,9 @@ class IngestionPipeline:
             logger.warning("Could not extract image URL from content")
             return
         
-        # Generate caption using context
-        # For now, use context-based captioning since we have markdown
-        caption = self.multimodal_handler.generate_caption_from_context(
-            image_markdown=content,
-            surrounding_text="",  # Could extract from full markdown if needed
+        # Generate caption using actual image via Gemini Vision
+        caption = self.multimodal_handler.generate_image_caption(
+            image_url=image_url,
             metadata=metadata
         )
         
